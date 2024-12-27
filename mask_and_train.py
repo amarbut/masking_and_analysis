@@ -97,7 +97,9 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint_model', help = 'location of checkpoint', required = False, default = None)
     parser.add_argument('--model_10M', help = 'location of 10M token model', required = False, default = None)
     parser.add_argument('--cutoff_10M', help = '% of weights removed from first mask', type = float, required = False, default = 0)
-    parser.add_argument('--save_strategy', help = 'epoch or steps', required = False, default = "step")
+    parser.add_argument('--save_strategy', help = 'epoch or steps', required = False, default = "steps")
+    parser.add_argument('--max_save', help = 'max checkpoints to save when saving by steps', required = False, type = int, default = None)
+    parser.add_argument('--save_steps', help = 'number of iterations for checkpoints if save_strategy=steps', required = False, type = int, default = 10000)
     
         
     kwargs = vars(parser.parse_args())
@@ -151,9 +153,9 @@ if __name__ == '__main__':
         per_device_train_batch_size= kwargs['batch_size'],
         learning_rate= kwargs['lr'],
         weight_decay= kwargs['wgt_decay'],
-        save_strategy=kwargs['save_strategy'],
-        save_steps=10_000,
-        save_total_limit=2,
+        save_strategy= kwargs['save_strategy'],
+        save_steps=kwargs['save_steps'],
+        save_total_limit= kwargs['max_save'] if kwargs['save_strategy']=='steps' else None,
         prediction_loss_only=True)
     
     # dataset = LineByLineTextDataset(
@@ -180,4 +182,3 @@ if __name__ == '__main__':
     
     print("begin training")
     trainer.train()
-    
