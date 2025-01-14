@@ -12,11 +12,11 @@ import numpy as np
 import re
 
 #alternative models run
-#glue_folder = "/media/anna/Samsung_T5/Initialization/glue_results/all_results/"
+glue_folder = "/media/anna/Samsung_T5/Initialization/glue_results/all_results/"
 
 #masked models run
 #glue_folder = "/media/anna/Samsung_T5/Initialization/glue_results/all_mask_results/"
- glue_folder = "/media/anna/Samsung_T5/Initialization/glue_results/all_mask_results_qqpacc/"
+# glue_folder = "/media/anna/Samsung_T5/Initialization/glue_results/all_mask_results_qqpacc/"
 
 glue_dict = dict()
 for m in os.listdir(glue_folder):
@@ -37,38 +37,38 @@ for m in glue_dict:
     for e in glue_dict[m]:
         glue_dict[m][e]["glue_avg"] = np.mean([glue_dict[m][e][t]for t in glue_dict[m][e] if t in glue_tasks])
 
-#for alt models    
-# model_list = ["rt_shuffle-index",
-#               "rt_shuffle-sentence",
-#               "rt_shuffle-corpus",
-#               "rt_ascii",
-#               "rerun_rt_rand",
-#               "roberta-baby",
-#               "rerun_rand",
-#               "original_rand",
-#               "stand_norm",
-#               "rt_rand"]
+# for alt models    
+model_list = ["rt_shuffle-index",
+              "rt_shuffle-sentence",
+              "rt_shuffle-corpus",
+              "rt_ascii",
+              "rerun_rt_rand",
+              "roberta-baby",
+              "rerun_rand",
+              "original_rand",
+              "stand_norm",
+              "rt_rand"]
 
 #for mask models
-model_list = ["Roberta_10M",
-              "Roberta_10M_2",
-              "Roberta_10M_3",
-              "Roberta_10M_init2",
-              "Roberta_10M_init3",
-              "Magnitude_10M",
-              "Magnitude_10M_2",
-              "Magnitude_10M_3",
-              "Magnitude_10M_init2",
-              "Magnitude_10M_init3",
-              # "Movement_10M",
-              # "Direction_all_10M",
-              # "Direction_mask_10M",
-              "Raw_10M",
-              #"Raw_10M_2",
-              #"Raw_10M_3",
-              #"Raw_10M_init2",
-              #"Raw_10M_init3",
-              ]
+# model_list = ["Roberta_10M",
+#               "Roberta_10M_2",
+#               "Roberta_10M_3",
+#               "Roberta_10M_init2",
+#               "Roberta_10M_init3",
+#               "Magnitude_10M",
+#               "Magnitude_10M_2",
+#               "Magnitude_10M_3",
+#               "Magnitude_10M_init2",
+#               "Magnitude_10M_init3",
+#               # "Movement_10M",
+#               # "Direction_all_10M",
+#               # "Direction_mask_10M",
+#               "Raw_10M",
+#               "Raw_10M_2",
+#               "Raw_10M_3",
+#               "Raw_10M_init2",
+#               "Raw_10M_init3",
+#               ]
 
 #visualize superglue performance curves
 # plt.figure(figsize=(12,8))
@@ -92,23 +92,24 @@ model_list = ["Roberta_10M",
 # plt.show()
 
 #exclude super tasks
+cmap = plt.get_cmap('tab20')
 plt.figure(figsize=(12,8))
 plt.xticks(list(range(0,21)))
 plt.xlabel("Epoch")
 plt.ylabel("Avg GLUE Score")
 plt.title("GLUE Performance during pre-training on BabyLM 10M")
-for m in model_list:
+for idx, m in enumerate(model_list):
     x = []
     y = []
     for e in glue_dict[m]:
-        #e_int = int(e[3:])
-        e_int = int(float(re.search("epoch_(.+)",e).group(1).replace("_", ".")))
+        e_int = int(e[3:])
+        # e_int = int(float(re.search("epoch_(.+)",e).group(1).replace("_", ".")))
         x.append(e_int)
         y.append(glue_dict[m][e]["glue_avg"])
     p = list(zip(x,y))
     p.sort()
     x_sort, y_sort = zip(*p)
-    plt.plot(x_sort,y_sort, label = m)
+    plt.plot(x_sort,y_sort, label = m, color = cmap(idx))
 
 plt.legend()    
 plt.show()

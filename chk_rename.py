@@ -30,4 +30,3 @@ for chk in os.listdir(kwargs["model_folder"]):
         print(e_name)
         os.rename(kwargs["model_folder"]+"/"+chk, kwargs["model_folder"]+"/"+e_name)
         #e_name_list.append(e_name)
-

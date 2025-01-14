@@ -116,7 +116,7 @@ if __name__ == '__main__':
     model.to(device)
     init.to(device)
     
-    #apply mask to init model if running through a second mask    
+    # apply mask to init model if running through a second mask    
     if kwargs["model_10M"] is not None:
         print("applying 10M token mask")
         m_10M = RobertaForMaskedLM.from_pretrained(kwargs['model_10M'])
@@ -150,21 +150,18 @@ if __name__ == '__main__':
         output_dir= kwargs['output_dir'],
         overwrite_output_dir=True,
         num_train_epochs= kwargs['epochs'],
+        num_workers = 8,
         per_device_train_batch_size= kwargs['batch_size'],
         learning_rate= kwargs['lr'],
-        weight_decay= kwargs['wgt_decay'],
+        warmup = 'linear',
         warmup_steps=5000,
-        max_grad_norm=1.0,
-        lr_scheduler_type="constant_with_warmup",
+        weight_decay= kwargs['wgt_decay'],
         save_strategy= kwargs['save_strategy'],
         save_steps=kwargs['save_steps'],
         save_total_limit= kwargs['max_save'] if kwargs['save_strategy']=='steps' else None,
         prediction_loss_only=True)
     
-    # dataset = LineByLineTextDataset(
-    #     tokenizer = tokenizer,
-    #     file_path= kwargs['dataset'],
-    #     block_size = 128)
+
     
     print("building dataset")
 
@@ -176,8 +173,13 @@ if __name__ == '__main__':
         dataset = babyLM.get_babyLM_1B(seq_len=128, tokenizer=None, just_dataset=False)
     else:
         raise NotImplementedError("Unknown dataset")
+
+    # dataset = LineByLineTextDataset(
+    #     tokenizer = tokenizer,
+    #     file_path=kwargs['dataset'],
+    #     block_size = 128)
     
-    trainer = FreezeTrainer(
+    trainer = Trainer(
         model = ckpt if ckpt is not None else init,
         args = training_args,
         data_collator=datacollator,
