@@ -1,0 +1,15 @@
+# Python artifacts
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Scratch
+scratch.py
+
+# Editor artifacts
+*.swp
+.Rhistory
+
+# SLURM outputs
+*.out
+*.err

@@ -81,8 +81,9 @@ class ModelSeries:
                     print(name)
                     p = param.data
                     p_init = m_init.state_dict()[name].data
-                    
+                    # met = torch.abs(p.flatten() - p_init.flatten()) / torch.norm(p_init.flatten()) #represent as proportion of previous weight value
                     met = torch.abs(p.flatten()-p_init.flatten())
+                    
                     metric_data.extend(met.tolist())
                     
         elif agg_level == 'parameter':
@@ -144,7 +145,7 @@ class ModelSeries:
                 
 
 
-    def change_viz_build(self, metric_name, agg_level, viz_type, lr_overlay = False, loss_overlay = False):
+    def change_viz_build(self, metric_name, agg_level, viz_type, filename, plot_title, lr_overlay = False, loss_overlay = False):
         '''
         agg_level: "weight", "head", "layer"; defines the level at which the metric is aggregated
         metric: defines the metric to be plotted
@@ -206,11 +207,11 @@ class ModelSeries:
             low = [c[1]-c[2] for c in met_dist]
             high = [c[3]-c[1] for c in met_dist]
             
-            fig, ax1 = plt.subplots()
+            fig, ax1 = plt.subplots(constrained_layout = True)
             
             ax1.errorbar(epoch_nums, meds, yerr=[low,high], capsize=5, label = metric_name, color = "blue")
-            ax1.set_ylabel(metric_name, color = "blue")
-            ax1.set_xlabel("Epoch")
+            ax1.set_ylabel(metric_name, color = "blue", fontsize = "large")
+            ax1.set_xlabel("Epoch", fontsize = "large")
             ax1.tick_params(axis="y", colors = "blue")
             ax1.grid(False)
             
@@ -221,7 +222,7 @@ class ModelSeries:
                 
                 ax2 = ax1.twinx()
                 ax2.plot(lr_epochs, lr, label = "learning rate", color = "red")
-                ax2.set_ylabel("learning_rate", color = "red")
+                ax2.set_ylabel("learning_rate", color = "red", fontsize = "large")
                 ax2.tick_params(axis = "y", colors = "red")
                 ax2.grid(False)
                 
@@ -232,13 +233,14 @@ class ModelSeries:
                 
                 ax2 = ax1.twinx()
                 ax2.plot(loss_epochs, loss, label = "loss", color = "red")
-                ax2.set_ylabel("loss", color = "red")
+                ax2.set_ylabel("loss", color = "red", fontsize = "large")
                 ax2.tick_params(axis = "y", colors = "red")
                 ax2.grid(False)
                 
             
-            plt.suptitle(self.model_name)
-            plt.title("Measured at: "+ agg_level+" level")
+            #plt.suptitle(plot_title, )
+            plt.title(plot_title, fontsize = "xx-large")
+            plt.savefig(filename, bbox_inches = "tight", pad_inches = 0.02)
             plt.show()
             
             
@@ -246,7 +248,7 @@ class ModelSeries:
         elif viz_type == "ridge":
             
             #visualize distribution of metric data over each checkpoint as a ridgline
-            fig, axes = plt.subplots(self.num_chk, 1, figsize = (6,20), sharex=True)
+            fig, axes = plt.subplots(self.num_chk, 1, figsize = (6,20), sharex=True, constrained_layout = True)
             sns.set(style="whitegrid")
             
             for idx,epoch in enumerate(self.epoch_list):
@@ -272,7 +274,8 @@ class ModelSeries:
                     axes[idx].set_title(epoch)
             plt.suptitle(self.model_name+": "+agg_level+" level")
             plt.xlabel(metric_name)
-            plt.tight_layout()
+            # plt.tight_layout()
+            plt.savefig(filename, bbox_inches = "tight", pad_inches=0.02)
             plt.show()      
                 
 
@@ -338,3 +341,121 @@ baby.change_viz_build("cosine_similarity", "head", "error")
 clr = ModelSeries("/media/easystore/initialization_all_epochs/roberta_10M_clr", "/media/anna/Samsung_T5/Initialization/HPC_store/models/roberta_init")
 
 clr.change_viz_build("cosine_similarity", "head", "error", lr_overlay = True)
+
+#%%
+clr = ModelSeries("/media/anna/easystore/initialization_all_epochs/roberta_100M_clr", "/media/anna/Samsung_T5/Initialization/HPC_store/models/roberta_init")
+
+clr.change_viz_build("cosine_similarity", "head", "error",filename = "hdcos_roberta_100M.pdf", lr_overlay = False, plot_title = "HF Training 100M")
+#%%
+clr = ModelSeries("/media/anna/easystore/initialization_all_epochs/roberta_baby", "/media/anna/Samsung_T5/Initialization/HPC_store/models/roberta_init")
+
+clr.change_viz_build("cosine_similarity", "head", "error",filename = "hdcos_babylm_10M.pdf", lr_overlay = False, plot_title = "BabyLM 10M")
+#%%
+clr = ModelSeries("/media/anna/easystore/initialization_all_epochs/roberta_100M_clr", "/media/anna/Samsung_T5/Initialization/HPC_store/models/roberta_init")
+
+clr.change_viz_build("weight_movement", "weight", "error",filename = "wgtmv_roberta_100M.pdf", lr_overlay = False, plot_title = "HF Training 100M")
+#%%
+clr = ModelSeries("/media/anna/easystore/initialization_all_epochs/roberta_baby", "/media/anna/Samsung_T5/Initialization/HPC_store/models/roberta_init")
+
+clr.change_viz_build("weight_movement", "weight", "error",filename = "wgtmv_babylm_10M.pdf", lr_overlay = False, plot_title = "BabyLM 10M")
+#%%
+clr = ModelSeries("/media/anna/easystore/initialization_all_epochs/roberta_10M_clr", "/media/anna/Samsung_T5/Initialization/HPC_store/models/roberta_init")
+
+clr.change_viz_build("cosine_similarity", "head", "error",filename = "hdcos_roberta_10M_LR.pdf", lr_overlay = True, plot_title = "HF Training 10M")
+#%%
+clr = ModelSeries("/media/anna/easystore/initialization_all_epochs/roberta_10M_clr", "/media/anna/Samsung_T5/Initialization/HPC_store/models/roberta_init")
+
+clr.change_viz_build("weight_movement", "weight", "error",filename = "wgtmv_roberta_10M.pdf", lr_overlay = False, plot_title = "HF Training 10M")
+
+#%%
+clr = ModelSeries("/media/anna/easystore/initialization_all_epochs/roberta_10M_clr", "/media/anna/Samsung_T5/Initialization/HPC_store/models/roberta_init")
+
+clr.change_viz_build("weight_movement", "weight", "error",filename = "wgtmv_roberta_10M_loss.pdf", loss_overlay = True, plot_title = "HF Training 10M")
+#%%
+fig, (ax_loss, ax_lr) = plt.subplots(2, 1, figsize=(8, 6), sharex=True)                                                                                     
+                                                                                                                                                              
+for folder, label, color in [                                                                                                                               
+    ("/media/anna/easystore/initialization_all_epochs/roberta_100M_clr", "Constant LR", "#4c8be0"),                                                         
+    ("/media/anna/easystore/initialization_all_epochs/roberta_100M",     "Linear LR",   "#e07b39"),                                                         
+]:                                                                                                                                                          
+    with open(folder + "/final/trainer_state.json") as f:                                                                                                   
+        log = [h for h in json.load(f)["log_history"] if "loss" in h and "learning_rate" in h]                                                              
+    epochs = [h["epoch"] for h in log]                                                                                                                      
+    ax_loss.plot(epochs, [h["loss"] for h in log], color=color, label=label)
+    ax_lr.plot(epochs,   [h["learning_rate"] for h in log], color=color, label=label)                                                                       
+                
+ax_loss.set_ylabel("Loss")                                                                                                                                  
+ax_lr.set_ylabel("Learning rate")
+ax_lr.set_xlabel("Epoch")                                                                                                                                   
+ax_loss.legend()
+fig.suptitle("100M training: loss and LR over epochs")
+fig.tight_layout()                                                                                                                                          
+plt.show()
+#%%
+fig, ax_loss = plt.subplots(figsize=(8, 4))                                                                                                                 
+ax_lr = ax_loss.twinx()                                                                                                                                     
+                                                                                                                                                              
+models = [      
+    ("/media/anna/easystore/initialization_all_epochs/roberta_100M_clr", "Constant LR", "#4c8be0"),
+    ("/media/anna/easystore/initialization_all_epochs/roberta_100M",     "Linear LR",   "#e07b39"),                                                         
+]
+                                                                                                                                                            
+for folder, label, color in models:                                                                                                                         
+    with open(folder + "/final/trainer_state.json") as f:
+        log = [h for h in json.load(f)["log_history"] if "loss" in h and "learning_rate" in h]                                                              
+    epochs = [h["epoch"] for h in log]
+    ax_loss.plot(epochs, [h["loss"] for h in log], color=color, linestyle="-",  label=f"{label} — loss")                                                    
+    ax_lr.plot(  epochs, [h["learning_rate"] for h in log], color=color, linestyle="--", label=f"{label} — LR", alpha=0.6)                                  
+                                                                                                                                                            
+ax_loss.set_yscale("log")                                                                                                                                   
+ax_loss.set_ylabel("Loss (log scale)", fontsize = "large")                                                                                                                      
+ax_loss.set_xlabel("Epoch", fontsize = "large")                                                                                                                                 
+ax_lr.set_ylabel("Learning rate", fontsize = "large")
+ax_lr.grid(False)                                                                                                                                           
+                
+lines1, labels1 = ax_loss.get_legend_handles_labels()                                                                                                       
+lines2, labels2 = ax_lr.get_legend_handles_labels()
+ax_loss.legend(lines1 + lines2, labels1 + labels2, fontsize = "large", framealpha=0.9)                                                                              
+                                                                                                                                                            
+fig.suptitle("100M training: loss and learning rate", fontsize = "xx-large")
+fig.tight_layout()                                                                                                                                          
+plt.savefig("100M_loss_lr_comparison.pdf", format="pdf")
+plt.show()      
+#%%
+def load_log(folder):
+    for subfolder in ["final", "epoch_20_0"]:
+        path = os.path.join(folder, subfolder, "trainer_state.json")                                                                                        
+        if os.path.exists(path):
+            with open(path) as f:                                                                                                                           
+                return [h for h in json.load(f)["log_history"] if "loss" in h and "learning_rate" in h]                                                     
+    raise FileNotFoundError(f"No trainer_state.json found in {folder}")
+                                                                                                                                                            
+fig, ax_loss = plt.subplots(figsize=(8, 4))
+ax_lr = ax_loss.twinx()                                                                                                                                     
+                
+models = [
+    ("/media/anna/easystore/initialization_all_epochs/roberta_10M_clr", "Constant LR", "#4c8be0"),
+    ("/media/anna/easystore/initialization_all_epochs/roberta_10M",     "Linear LR",   "#e07b39"),                                                          
+]
+                                                                                                                                                            
+for folder, label, color in models:                                                                                                                         
+    log = load_log(folder)
+    epochs = [h["epoch"] for h in log]                                                                                                                      
+    ax_loss.plot(epochs, [h["loss"] for h in log], color=color, linestyle="-",  label=f"{label} — loss")
+    ax_lr.plot(  epochs, [h["learning_rate"] for h in log], color=color, linestyle="--", label=f"{label} — LR", alpha=0.6)                                  
+ 
+ax_loss.set_yscale("log")                                                                                                                                   
+ax_loss.set_ylabel("Loss (log scale)", fontsize = "large")
+ax_loss.set_xlabel("Epoch", fontsize = "large")                                                                                                                                 
+ax_lr.set_ylabel("Learning rate", fontsize = "large")
+ax_lr.grid(False)
+
+lines1, labels1 = ax_loss.get_legend_handles_labels()                                                                                                       
+lines2, labels2 = ax_lr.get_legend_handles_labels()
+ax_loss.legend(lines1 + lines2, labels1 + labels2,  fontsize = "large", framealpha=0.9)                                                                              
+                
+fig.suptitle("10M training: loss and learning rate", fontsize = "xx-large")                                                                                                        
+fig.tight_layout()
+plt.savefig("10M_loss_lr_comparison.pdf", format="pdf")                                                                                                     
+plt.show()      
+                                 
