@@ -13,3 +13,15 @@ scratch.py
 # SLURM outputs
 *.out
 *.err
+*.slurm
+
+# Untracked local files
+Freeze_trial.ipynb
+unmask_mask_wgt_explore.ipynb
+chk_rename.py
+full_model_weight_dist.py
+mask_and_train_debug.py
+masking.py
+roberta_pretrain.py
+run_glue.sh
+unmask_mask_weights.py
