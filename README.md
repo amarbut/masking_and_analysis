@@ -7,7 +7,7 @@ Exploratory analysis of weight distributions and masking in pre-trained transfor
 
 ## Overview
 
-This repository investigates what happens inside transformer language models at the weight level — before, during, and after pre-training. The central finding is that training scale and hyperparameter choices affect weight distributions far more than training task does, and that pre-trained weights remain surprisingly close to their initialized values even after extensive training. This connects to the lottery ticket hypothesis and raises questions about which weights are actually doing meaningful work.
+This repository investigates what happens inside transformer language models at the weight level before, during, and after pre-training. The central finding is that training scale and hyperparameter choices affect weight distributions far more than training task does, and that pre-trained weights remain surprisingly close to their initialized values even after extensive training. This connects to the lottery ticket hypothesis and raises questions about which weights are actually doing meaningful work.
 
 The work is organized around three related threads:
 
@@ -17,7 +17,7 @@ The work is organized around three related threads:
 
 **Initialization.** Building on work showing that non-standard pre-training processes can produce surprisingly strong benchmarking performance, how do different model initializations and pre-training configurations affect downstream benchmark performance throughout training?
 
-These observations connect to the broader nooks-and-crannies framework: if weight distributions encode something meaningful about a model's representational capacity, then the geometry of weight space may itself be predictive of downstream performance — and targeted initialization strategies may be able to produce favorable latent geometry before linguistic training begins.
+These observations connect to a broader interpretability framework: if weight distributions encode something meaningful about a model's representational capacity, then the geometry of weight space may itself be predictive of downstream performance, and targeted initialization strategies may be able to produce favorable latent geometry before linguistic training begins.
 
 ## Repository Structure
 
