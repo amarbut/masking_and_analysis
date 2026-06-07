@@ -1,65 +1,71 @@
-# masking_and_analysis
+# Weight Distributions and Overparameterization
 
-Exploratory analysis of weight distributions and masking in pre-trained transformer language models, connected to Chapter 4 of:
+Exploratory analysis of weight distributions and masking in pre-trained transformer language models, corresponding to Chapter 4 of:
 
-> **Searching for Nooks and Crannies: Geometric and Mechanistic Perspectives on Transformer Language Model Interpretability**  
+> **Searching for Nooks and Crannies: Geometric and Mechanistic Perspectives on Transformer Language Model Interpretability**
 > Anna C. Marbut. PhD dissertation, University of Montana (2026).
 
-This work investigates how pre-training scale and hyperparameters shape the distribution of weights across transformer encoder layers, and whether lottery-ticket-style masking can be used to re-train smaller models with masked weight initialization.
+## Overview
 
-## Research Questions
+This repository investigates what happens inside transformer language models at the weight level — before, during, and after pre-training. The central finding is that training scale and hyperparameter choices affect weight distributions far more than training task does, and that pre-trained weights remain surprisingly close to their initialized values even after extensive training. This connects to the lottery ticket hypothesis and raises questions about which weights are actually doing meaningful work.
 
-- How do weight distributions differ between models trained on 10M vs. 100M tokens?
-- Do different pre-training scales agree on which weights are "important" (as measured by magnitude, movement, and direction from initialization)?
-- Can a model trained from masked weights (retaining a subset of weights from a pre-trained model) recover competitive downstream performance?
+The work is organized around three related threads:
+
+**Pre-training Dynamics.** How do pre-training data scale, training task, and hyperparameter configuration shape the distribution of weights across transformer layers?
+
+**Overparameterization.** Pre-trained weights remain surprisingly close to initialized values even after extensive training. Which weights are actually doing meaningful work? Can we use weight movement patterns to identify and mask the rest?
+
+**Initialization.** Building on work showing that non-standard pre-training processes can produce surprisingly strong benchmarking performance, how do different model initializations and pre-training configurations affect downstream benchmark performance throughout training?
+
+These observations connect to the broader nooks-and-crannies framework: if weight distributions encode something meaningful about a model's representational capacity, then the geometry of weight space may itself be predictive of downstream performance — and targeted initialization strategies may be able to produce favorable latent geometry before linguistic training begins.
 
 ## Repository Structure
 
+### `initialization_and_GLUE/`
+Scripts exploring how initialization and pre-training configuration affect GLUE benchmark performance.
+
 ```
-mask_and_train.py          Main training script — parameterized HPC-compatible implementation
-                           of masked weight pre-training. Accepts all settings via argparse.
-
-masking.py                 Exploratory prototype of the masking approach. Documents the initial
-                           build_freeze_dict() and FreezeTrainer implementations, and the
-                           mask overlap analysis comparing 10M and 100M models.
-
-weight_movement_viz.py     Visualization of weight movement across training checkpoints.
-                           ModelSeries class loads a series of checkpoints and computes
-                           statistics on how weights move during pre-training.
-
-full_model_weight_dist.py  Compare global weight distributions across pre-trained model families
-                           (RoBERTa, BERT, GPT-2, T5).
-
-unmask_mask_weights.py     Analysis of which weights survive masking and how their distributions
-                           change after masked re-training.
-
-BabyLM_mask.py             BabyLM-specific masking experiments.
-roberta_pretrain.py        RoBERTa pre-training utilities.
-
-mask_train.slurm           SLURM job script for HPC cluster runs.
-run_glue.sh                Script to run GLUE evaluation on trained models.
-
-Freeze_trial.ipynb         Notebook exploring early freeze/mask trials.
-Init_explore.ipynb         Notebook exploring weight distributions at initialization.
-unmask_mask_wgt_explore.ipynb  Notebook exploring weight changes under masking.
+baseline-pretraining/   BabyLM baseline pre-training codebase (reference implementation)
+compare_glue.py         Compare GLUE results across model configurations and masking runs
+glue_parse.py           Parse and aggregate GLUE evaluation outputs
+data_shuffle.py         Dataset preparation utilities
 ```
 
-## Masking Strategies
+### `overparameterization/`
+Implementation of weight masking experiments and masked pre-training.
+
+```
+mask_and_train.py       Main training script — parameterized, HPC-compatible masked
+                        weight pre-training. Accepts all masking strategies via argparse.
+BabyLM_mask.py          Lightweight masking utility for BabyLM-scale experiments
+```
 
 `mask_and_train.py` supports five masking strategies:
 
-| Strategy | Masks weights with... |
+| Strategy | Masks weights based on... |
 |---|---|
 | `raw_value` | Smallest absolute weight values |
 | `movement` | Weights that changed least from initialization |
-| `magnitude` | Weights with smallest magnitude change from initialization |
+| `magnitude` | Smallest magnitude change from initialization |
 | `direction_mask` | Weights that moved toward zero (partial zeroing) |
 | `direction_all` | Weights that moved toward zero (full zeroing) |
 
+### `visualize_and_explore/`
+Analysis and visualization of weight distributions across training scales and checkpoints.
+
+```
+weight_explore.py          Compare weight distributions across model sizes
+                           (10M, 100M token, and base RoBERTa)
+weight_movement_viz.py     Visualize how weights move during pre-training
+                           (ModelSeries class loads checkpoint sequences)
+Init_explore.ipynb         Exploratory notebook: weight distributions at initialization
+```
+
 ## Usage
 
+**Run masked weight pre-training:**
 ```bash
-python mask_and_train.py \
+python overparameterization/mask_and_train.py \
     --trained_model <path_to_trained_model> \
     --initial_model <path_to_init_model> \
     --dataset babyLM-10M \
@@ -67,6 +73,13 @@ python mask_and_train.py \
     --mask_strategy movement \
     --cutoff_perc 0.7
 ```
+
+**Compare GLUE results across runs:**
+```bash
+python initialization_and_GLUE/compare_glue.py
+```
+
+Experiments were run on a SLURM HPC cluster; adapt resource requests and local paths as needed.
 
 ## Key Dependencies
 
